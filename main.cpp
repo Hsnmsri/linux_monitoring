@@ -8,29 +8,46 @@
 #include <curl/curl.h>
 #include <stdio.h>
 #include <tgbot/tgbot.h>
+#include <nlohmann/json.hpp>
 
 void thread_getCPUUsage();
 void thread_getMemoryUsage();
 void thread_telegramBot();
-void onStart(TgBot::Message::Ptr message);
+void thread_telegramNotification();
+bool getSetting();
 
-std::string botToken = "7427461633:AAGgMN4Km9mm2VGigT2p9kLRnG4kLh22hBk";
-const int64_t chatId = 6305232259;
+std::string botToken;
+int64_t chatId;
 
 double lastCpuUsage;
 double lastMemoryUsage;
+int memoryLimit = 0;
+int cpuLimit = 2;
+int cpuCheckDuration = 500;
+int memoryCheckDuration = 500;
+
+using json = nlohmann::json;
 
 int main()
 {
+    // Get settings from setting file
+    if (!getSetting())
+    {
+        std::cout << "Failed to set settings!";
+        return 0;
+    }
+
     // Create a new thread and run `threadFunction` on it
     std::thread cpuMonitorThread(thread_getCPUUsage);
     std::thread memoryMonitorThread(thread_getMemoryUsage);
     std::thread telegramBotHandler(thread_telegramBot);
+    std::thread telegramNotificationHandler(thread_telegramNotification);
 
     // Wait for the thread to finish
     cpuMonitorThread.join();
     memoryMonitorThread.join();
     telegramBotHandler.join();
+    telegramNotificationHandler.join();
 
     return 0;
 }
@@ -147,20 +164,28 @@ void thread_telegramBot()
     TgBot::Bot bot(botToken);
 
     // On start
+    bot.getEvents().onCommand("start", [&bot](TgBot::Message::Ptr message)
+                              { 
+                                if(message->chat->id!=chatId){
+                                    return;
+                                }
+                                bot.getApi().sendMessage(message->chat->id, "Welcome to LinuxMonitoring\nCommands:\n/usage     get server status"); });
+
+    // On usage
     bot.getEvents().onCommand("usage", [&bot](TgBot::Message::Ptr message)
                               { 
                                 if(message->chat->id!=chatId){
                                     return;
                                 }
-                                bot.getApi().sendMessage(message->chat->id, "CPU : " + std::to_string((int)lastCpuUsage )+ "%\n Memory : " + std::to_string((int)lastMemoryUsage) + "%"); });
+                                bot.getApi().sendMessage(message->chat->id, "CPU : " + std::to_string((int)lastCpuUsage )+ "%\nMemory : " + std::to_string((int)lastMemoryUsage) + "%"); });
 
-    bot.getEvents().onAnyMessage([&bot](TgBot::Message::Ptr message)
-                                 {
-        printf("User wrote %s\n", message->text.c_str());
-        if (StringTools::startsWith(message->text, "/start")) {
-            return;
-        }
-        bot.getApi().sendMessage(message->chat->id, "Your message is: " + message->text); });
+    // bot.getEvents().onAnyMessage([&bot](TgBot::Message::Ptr message)
+    //                              {
+    //     printf("User wrote %s\n", message->text.c_str());
+    //     if (StringTools::startsWith(message->text, "/start")) {
+    //         return;
+    //     }
+    //     bot.getApi().sendMessage(message->chat->id, "Your message is: " + message->text); });
 
     try
     {
@@ -176,4 +201,51 @@ void thread_telegramBot()
     {
         printf("error: %s\n", e.what());
     }
+}
+
+void thread_telegramNotification()
+{
+    TgBot::Bot bot(botToken);
+
+    // Check usage with limit
+    while (true)
+    {
+        // Check cpu limit
+        if (cpuLimit != 0 && cpuLimit > 0 && lastCpuUsage >= cpuLimit)
+        {
+            bot.getApi().sendMessage(chatId, "CPU Warning!\nCpu : " + std::to_string((int)lastCpuUsage) + "%");
+        }
+
+        // Check memory limit
+        if (memoryLimit != 0 && memoryLimit > 0 && lastMemoryUsage >= memoryLimit)
+        {
+            bot.getApi().sendMessage(chatId, "Memory Warning!\nMemory : " + std::to_string((int)lastMemoryUsage) + "%");
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+}
+
+bool getSetting()
+{
+    // Load the settings.json file
+    std::ifstream settings_file("settings.json");
+    if (!settings_file)
+    {
+        std::cerr << "Error opening settings.json file." << std::endl;
+        return false;
+    }
+
+    // Parse the JSON file
+    json settings;
+    settings_file >> settings;
+
+    // Access values from the JSON object
+    botToken = settings["bot_token"];
+    chatId = (int64_t)settings["chat_id"];
+    cpuCheckDuration = (int)settings["cpu_check_duration"];
+    memoryCheckDuration = (int)settings["memory_check_duration"];
+    cpuLimit = (int)settings["cpu_limit"];
+    memoryLimit = (int)settings["memory_limit"];
+    return true;
 }
