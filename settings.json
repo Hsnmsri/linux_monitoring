@@ -3,6 +3,6 @@
   "chat_id": 6305232259,
   "cpu_check_duration": 500,
   "memory_check_duration": 500,
-  "cpu_limit": 0,
-  "memory_limit": 0
+  "cpu_limit": 3,
+  "memory_limit": 3
 }

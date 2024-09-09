@@ -9,12 +9,14 @@
 #include <stdio.h>
 #include <tgbot/tgbot.h>
 #include <nlohmann/json.hpp>
+#include <iomanip>
 
 void thread_getCPUUsage();
 void thread_getMemoryUsage();
 void thread_telegramBot();
 void thread_telegramNotification();
 bool getSetting();
+void log(std::string content);
 
 std::string botToken;
 int64_t chatId;
@@ -30,10 +32,11 @@ using json = nlohmann::json;
 
 int main()
 {
+    log("Linux Monitoring Service Started");
     // Get settings from setting file
     if (!getSetting())
     {
-        std::cout << "Failed to set settings!";
+        log("Failed to set settings!");
         return 0;
     }
 
@@ -102,7 +105,7 @@ void thread_getCPUUsage()
         lastCpuUsage = cpuUsage;
 
         // Sleep for 1 second before the next measurement
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(cpuCheckDuration));
     }
 }
 
@@ -144,7 +147,7 @@ void thread_getMemoryUsage()
 
         if (totalMemory == 0)
         {
-            std::cerr << "Total memory not found in /proc/meminfo" << std::endl;
+            log("Total memory not found in /proc/meminfo");
             return;
         }
 
@@ -155,7 +158,7 @@ void thread_getMemoryUsage()
         // Update memory usage
         lastMemoryUsage = memoryUsagePercent;
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(memoryCheckDuration));
     }
 }
 
@@ -169,7 +172,8 @@ void thread_telegramBot()
                                 if(message->chat->id!=chatId){
                                     return;
                                 }
-                                bot.getApi().sendMessage(message->chat->id, "Welcome to LinuxMonitoring\nCommands:\n/usage     get server status"); });
+                                log("send /start command");
+                                bot.getApi().sendMessage(message->chat->id, "Welcome to LinuxMonitoring\n\nCommands:\n/usage     get server status\n/help     get bot command list \n\nPowered By Mr.Mansouri"); });
 
     // On usage
     bot.getEvents().onCommand("usage", [&bot](TgBot::Message::Ptr message)
@@ -177,7 +181,16 @@ void thread_telegramBot()
                                 if(message->chat->id!=chatId){
                                     return;
                                 }
+                                log("send /usage command");
                                 bot.getApi().sendMessage(message->chat->id, "CPU : " + std::to_string((int)lastCpuUsage )+ "%\nMemory : " + std::to_string((int)lastMemoryUsage) + "%"); });
+
+    // On help
+    bot.getEvents().onCommand("help", [&bot](TgBot::Message::Ptr message)
+                              { 
+                                if(message->chat->id!=chatId){
+                                    return;
+                                }
+                                bot.getApi().sendMessage(message->chat->id, "Commands:\n/usage     get server status"); });
 
     // bot.getEvents().onAnyMessage([&bot](TgBot::Message::Ptr message)
     //                              {
@@ -189,17 +202,18 @@ void thread_telegramBot()
 
     try
     {
-        printf("Bot username: %s\n", bot.getApi().getMe()->username.c_str());
+        std::cout << "Bot Username : " << bot.getApi().getMe()->username.c_str() << std::endl;
+        std::cout << "User ChatID : " << chatId << std::endl;
+        std::cout << "Bot API Token : " << botToken << std::endl;
         TgBot::TgLongPoll longPoll(bot);
         while (true)
         {
-            printf("Long poll started\n");
             longPoll.start();
         }
     }
     catch (TgBot::TgException &e)
     {
-        printf("error: %s\n", e.what());
+        printf("error : %s\n", e.what());
     }
 }
 
@@ -213,12 +227,14 @@ void thread_telegramNotification()
         // Check cpu limit
         if (cpuLimit != 0 && cpuLimit > 0 && lastCpuUsage >= cpuLimit)
         {
+            log("cpu overload (" + std::to_string((int)lastCpuUsage) + "%)");
             bot.getApi().sendMessage(chatId, "CPU Warning!\nCpu : " + std::to_string((int)lastCpuUsage) + "%");
         }
 
         // Check memory limit
         if (memoryLimit != 0 && memoryLimit > 0 && lastMemoryUsage >= memoryLimit)
         {
+            log("memory overload (" + std::to_string((int)lastMemoryUsage) + "%)");
             bot.getApi().sendMessage(chatId, "Memory Warning!\nMemory : " + std::to_string((int)lastMemoryUsage) + "%");
         }
 
@@ -248,4 +264,18 @@ bool getSetting()
     cpuLimit = (int)settings["cpu_limit"];
     memoryLimit = (int)settings["memory_limit"];
     return true;
+}
+
+void log(std::string content)
+{
+    // Get current time as a system clock time_point
+    auto now = std::chrono::system_clock::now();
+
+    // Convert to time_t (for formatting)
+    std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+
+    // Convert to local time and format it
+    std::tm *localTime = std::localtime(&currentTime);
+
+    std::cout << "[" << std::put_time(localTime, "%Y-%m-%d %H:%M:%S") << "] " << content << std::endl;
 }
