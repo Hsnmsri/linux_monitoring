@@ -1,5 +1,4 @@
-#ifndef CPUMONITOR_HPP
-#define CPUMONITOR_HPP
+#pragma once
 
 #include <iostream>
 #include <fstream>
@@ -32,5 +31,3 @@ private:
     std::thread monitorThread;
     bool monitoringActive = true; // Controls the monitoring loop
 };
-
-#endif // CPUMONITOR_HPP

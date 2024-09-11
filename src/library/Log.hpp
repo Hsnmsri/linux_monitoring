@@ -1,5 +1,4 @@
-#ifndef LOG_HPP
-#define LOG_HPP
+#pragma once
 
 #include <iostream>
 #include <chrono>
@@ -18,5 +17,3 @@ private:
     // Get current formatted time
     std::string getCurrentTime();
 };
-
-#endif // LOG_HPP

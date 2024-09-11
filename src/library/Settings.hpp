@@ -1,5 +1,4 @@
-#ifndef SETTINGS_HPP
-#define SETTINGS_HPP
+#pragma once
 
 #include <iostream>
 #include <fstream>
@@ -31,5 +30,3 @@ private:
     int cpuLimit;
     int memoryLimit;
 };
-
-#endif // SETTINGS_HPP

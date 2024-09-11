@@ -1,4 +1,14 @@
+# make build directory
 mkdir -p src/build
+
+# copy settings if not exist
 cp src/assets/settings.json src/build -n
-g++ -I src/library src/main.cpp src/library/Log.cpp src/library/Settings.cpp src/library/CpuMonitor.cpp src/library/MemoryMonitor.cpp -o src/build/LinuxMonitoring -pthread -lcurl --std=c++14 -I/usr/local/include -lTgBot -lboost_system -lssl -lcrypto -lpthread 
+
+# compile project
+g++ -I src/library \
+    src/library/Log.cpp src/library/Settings.cpp src/library/CpuMonitor.cpp src/library/MemoryMonitor.cpp src/library/TelegramMonitor.cpp \
+    -o src/build/LinuxMonitoring src/main.cpp \
+    -pthread -lcurl --std=c++14 -I/usr/local/include -lTgBot -lboost_system -lssl -lcrypto -lpthread
+
+# print successfully
 echo "compiled to src/build directory."

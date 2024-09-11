@@ -1,5 +1,4 @@
-#ifndef MEMORYMONITOR_HPP
-#define MEMORYMONITOR_HPP
+#pragma once
 
 #include <iostream>
 #include <fstream>
@@ -25,5 +24,3 @@ private:
     std::thread monitorThread;
     bool monitoringActive = true;
 };
-
-#endif // MEMORYMONITOR_HPP
