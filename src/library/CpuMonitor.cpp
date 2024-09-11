@@ -2,12 +2,49 @@
 
 CpuMonitor::CpuMonitor(int durationTimeToCheckMS, bool &isMonitoringEnable) : durationTimeToCheckMS(durationTimeToCheckMS), isMonitoringEnable(isMonitoringEnable), lastCpuUsage(0.0) {}
 
+/**
+ * @brief Starts monitoring the CPU usage.
+ *
+ * This function initializes a new thread that runs the `thread_getCPUUsage` method.
+ * The `thread_getCPUUsage` method will continuously check and record CPU usage in the background.
+ * The thread is detached so it continues running independently of the main program flow.
+ *
+ * The `std::thread` object `monitorThread` is used to handle the concurrent execution of the
+ * CPU monitoring task. By detaching the thread, we allow it to run asynchronously, which means
+ * it operates in the background and does not block the main program.
+ *
+ * It is important to ensure that the `thread_getCPUUsage` method is thread-safe and does not
+ * access any shared resources without proper synchronization to avoid data races.
+ */
 void CpuMonitor::startMonitoring()
 {
     monitorThread = std::thread(&CpuMonitor::thread_getCPUUsage, this);
     monitorThread.detach(); // Detach the thread so it runs in the background
 }
 
+/**
+ * @brief Reads CPU time statistics from /proc/stat.
+ *
+ * This function reads and parses CPU time information from the file `/proc/stat`, which is a
+ * virtual file that provides detailed information about the CPU usage.
+ *
+ * The function extracts the following values:
+ * - `user`: Time the CPU has spent in user mode.
+ * - `nice`: Time the CPU has spent in user mode with low priority (nice).
+ * - `system`: Time the CPU has spent in system mode (kernel).
+ * - `idle`: Time the CPU has spent in idle mode.
+ *
+ * It opens the `/proc/stat` file, reads the first line which starts with the label "cpu",
+ * and then parses the subsequent values into the provided reference parameters.
+ *
+ * If the file cannot be opened, it prints an error message to `std::cerr` and exits the program
+ * with a non-zero status code.
+ *
+ * @param user Reference to a long long where the user CPU time will be stored.
+ * @param nice Reference to a long long where the nice CPU time will be stored.
+ * @param system Reference to a long long where the system CPU time will be stored.
+ * @param idle Reference to a long long where the idle CPU time will be stored.
+ */
 void CpuMonitor::readCpuTimes(long long &user, long long &nice, long long &system, long long &idle)
 {
     std::ifstream statFile("/proc/stat");
@@ -27,6 +64,35 @@ void CpuMonitor::readCpuTimes(long long &user, long long &nice, long long &syste
     statFile.close();
 }
 
+/**
+ * @brief Monitors CPU usage in a separate thread.
+ *
+ * This function continuously monitors the CPU usage in a background thread. It performs the following steps:
+ *
+ * 1. Checks if monitoring is enabled. If not, it waits for 1 second before checking again.
+ *
+ * 2. Reads the initial CPU times from `/proc/stat` using the `readCpuTimes` function.
+ *
+ * 3. Sleeps for a specified period (1 second) to allow time to pass for comparison.
+ *
+ * 4. Reads the CPU times again after the sleep period.
+ *
+ * 5. Calculates the difference in CPU times to determine the amount of time the CPU was idle and the total CPU time.
+ *
+ * 6. Computes the CPU usage percentage using the formula:
+ *    \[
+ *    \text{cpuUsage} = 100.0 \times \frac{(\text{totalDiff} - \text{idleDiff})}{\text{totalDiff}}
+ *    \]
+ *    where `totalDiff` is the difference in total CPU time and `idleDiff` is the difference in idle time.
+ *
+ * 7. Updates the `lastCpuUsage` variable with the calculated CPU usage percentage.
+ *
+ * 8. Sleeps for the duration specified in `this->durationTimeToCheckMS` before repeating the process.
+ *
+ * The function runs in an infinite loop, continuously updating the CPU usage until monitoring is disabled.
+ *
+ * The monitoring interval and CPU check duration are controlled by settings provided to the `CpuMonitor` object.
+ */
 void CpuMonitor::thread_getCPUUsage()
 {
     while (true)
