@@ -1,1 +1,3 @@
-g++ main.cpp -o LinuxMonitoring -pthread -lcurl --std=c++14 -I/usr/local/include -lTgBot -lboost_system -lssl -lcrypto -lpthread
+mkdir -p src/build
+cp src/assets/settings.json src/build
+g++ main.cpp -o src/build/LinuxMonitoring -pthread -lcurl --std=c++14 -I/usr/local/include -lTgBot -lboost_system -lssl -lcrypto -lpthread
