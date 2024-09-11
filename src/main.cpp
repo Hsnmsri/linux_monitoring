@@ -9,6 +9,7 @@ int main()
     // Monitoring Status
     bool isMonitoringEnable = false;
 
+    // Objects
     Log logger;
     Settings settings;
 
