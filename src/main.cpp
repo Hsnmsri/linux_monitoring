@@ -13,9 +13,8 @@
 #include <Log.hpp>
 #include <Settings.hpp>
 #include <CpuMonitor.hpp>
+#include <MemoryMonitor.hpp>
 
-void thread_getCPUUsage();
-void thread_getMemoryUsage();
 void thread_telegramBot();
 void thread_telegramNotification();
 
@@ -38,73 +37,26 @@ int main()
         return 0;
     }
 
+    // Monitoring CPU
+    CpuMonitor cpu(settings.getCpuCheckDuration());
+    MemoryMonitor memory(settings.getMemoryCheckDuration());
+
+    cpu.startMonitoring();
+    memory.startMonitoring();
+    while (true)
+    {
+        std::cout << memory.getLastMemoryUsage() << std::endl;
+    }
+
     // Create a new thread and run `threadFunction` on it
-    std::thread cpuMonitorThread(thread_getCPUUsage);
-    std::thread memoryMonitorThread(thread_getMemoryUsage);
     std::thread telegramBotHandler(thread_telegramBot);
     std::thread telegramNotificationHandler(thread_telegramNotification);
 
     // Wait for the thread to finish
-    cpuMonitorThread.join();
-    memoryMonitorThread.join();
     telegramBotHandler.join();
     telegramNotificationHandler.join();
 
     return 0;
-}
-
-void thread_getCPUUsage()
-{
-    while (true)
-    {
-        long long user1, nice1, system1, idle1;
-        long long user2, nice2, system2, idle2;
-
-        // Helper function to read CPU times from /proc/stat
-        auto readCpuTimes = [](long long &user, long long &nice, long long &system, long long &idle)
-        {
-            std::ifstream statFile("/proc/stat");
-            if (!statFile.is_open())
-            {
-                std::cerr << "Error opening /proc/stat" << std::endl;
-                exit(1);
-            }
-
-            std::string line;
-            std::getline(statFile, line); // Read the first line (the "cpu" line)
-            std::istringstream iss(line);
-            std::string cpuLabel;
-            iss >> cpuLabel; // Skip the "cpu" label
-            iss >> user >> nice >> system >> idle;
-
-            statFile.close();
-        };
-
-        // Read initial CPU times
-        readCpuTimes(user1, nice1, system1, idle1);
-
-        // Sleep for a while to get a comparison period
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-        // Read CPU times again after the sleep
-        readCpuTimes(user2, nice2, system2, idle2);
-
-        // Calculate differences
-        long long total1 = user1 + nice1 + system1 + idle1;
-        long long total2 = user2 + nice2 + system2 + idle2;
-
-        long long totalDiff = total2 - total1;
-        long long idleDiff = idle2 - idle1;
-
-        // Calculate CPU usage percentage
-        double cpuUsage = 100.0 * (totalDiff - idleDiff) / totalDiff;
-
-        // Update last usage
-        lastCpuUsage = cpuUsage;
-
-        // Sleep for 1 second before the next measurement
-        std::this_thread::sleep_for(std::chrono::milliseconds(settings.getCpuCheckDuration()));
-    }
 }
 
 void thread_getMemoryUsage()

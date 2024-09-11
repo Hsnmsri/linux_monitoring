@@ -1,8 +1,8 @@
 {
-  "bot_token": "",
-  "chat_id": 11,
+  "bot_token": "7545619018:AAGr1S82hkZGB8UaMP4vj1PQXQmMWo0qgfI",
+  "chat_id": 6305232259,
   "cpu_check_duration": 500,
   "memory_check_duration": 500,
-  "cpu_limit": 30,
-  "memory_limit": 30
+  "cpu_limit": 50,
+  "memory_limit": 50
 }
