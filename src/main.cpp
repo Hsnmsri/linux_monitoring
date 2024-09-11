@@ -12,6 +12,7 @@
 #include <iomanip>
 #include <Log.hpp>
 #include <Settings.hpp>
+#include <CpuMonitor.hpp>
 
 void thread_getCPUUsage();
 void thread_getMemoryUsage();

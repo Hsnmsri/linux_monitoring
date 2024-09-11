@@ -1,4 +1,4 @@
 mkdir -p src/build
 cp src/assets/settings.json src/build
-g++ -I src/library src/main.cpp src/library/Log.cpp src/library/Settings.cpp -o src/build/LinuxMonitoring -pthread -lcurl --std=c++14 -I/usr/local/include -lTgBot -lboost_system -lssl -lcrypto -lpthread 
+g++ -I src/library src/main.cpp src/library/Log.cpp src/library/Settings.cpp src/library/CpuMonitor.cpp -o src/build/LinuxMonitoring -pthread -lcurl --std=c++14 -I/usr/local/include -lTgBot -lboost_system -lssl -lcrypto -lpthread 
 echo "compiled to src/build directory."
