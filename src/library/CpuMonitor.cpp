@@ -1,15 +1,18 @@
 #include "CpuMonitor.hpp"
 
-CpuMonitor::CpuMonitor(Settings& settings) : settings(settings), lastCpuUsage(0.0) {}
+CpuMonitor::CpuMonitor(int durationTimeToCheckMS) : durationTimeToCheckMS(durationTimeToCheckMS), lastCpuUsage(0.0) {}
 
-void CpuMonitor::startMonitoring() {
+void CpuMonitor::startMonitoring()
+{
     monitorThread = std::thread(&CpuMonitor::thread_getCPUUsage, this);
-    monitorThread.detach();  // Detach the thread so it runs in the background
+    monitorThread.detach(); // Detach the thread so it runs in the background
 }
 
-void CpuMonitor::readCpuTimes(long long &user, long long &nice, long long &system, long long &idle) {
+void CpuMonitor::readCpuTimes(long long &user, long long &nice, long long &system, long long &idle)
+{
     std::ifstream statFile("/proc/stat");
-    if (!statFile.is_open()) {
+    if (!statFile.is_open())
+    {
         std::cerr << "Error opening /proc/stat" << std::endl;
         exit(1);
     }
@@ -24,8 +27,10 @@ void CpuMonitor::readCpuTimes(long long &user, long long &nice, long long &syste
     statFile.close();
 }
 
-void CpuMonitor::thread_getCPUUsage() {
-    while (monitoringActive) {
+void CpuMonitor::thread_getCPUUsage()
+{
+    while (monitoringActive)
+    {
         long long user1, nice1, system1, idle1;
         long long user2, nice2, system2, idle2;
 
@@ -52,6 +57,6 @@ void CpuMonitor::thread_getCPUUsage() {
         lastCpuUsage = cpuUsage;
 
         // Sleep for the CPU check duration from the settings
-        std::this_thread::sleep_for(std::chrono::milliseconds(settings.getCpuCheckDuration()));
+        std::this_thread::sleep_for(std::chrono::milliseconds(this->durationTimeToCheckMS));
     }
 }

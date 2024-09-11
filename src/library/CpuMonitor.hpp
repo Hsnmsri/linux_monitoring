@@ -9,9 +9,10 @@
 #include <atomic>
 #include "Settings.hpp" // Include the settings class
 
-class CpuMonitor {
+class CpuMonitor
+{
 public:
-    CpuMonitor(Settings& settings);
+    CpuMonitor(int durationTimeToCheckMS);
 
     // Starts the thread to monitor CPU usage
     void startMonitoring();
@@ -24,12 +25,12 @@ private:
     void thread_getCPUUsage();
 
     // Reads CPU times from /proc/stat
-    void readCpuTimes(long long& user, long long& nice, long long& system, long long& idle);
+    void readCpuTimes(long long &user, long long &nice, long long &system, long long &idle);
 
+    int durationTimeToCheckMS;
     std::atomic<double> lastCpuUsage;
-    Settings& settings;  // Reference to settings object
     std::thread monitorThread;
-    bool monitoringActive = true;  // Controls the monitoring loop
+    bool monitoringActive = true; // Controls the monitoring loop
 };
 
 #endif // CPUMONITOR_HPP
