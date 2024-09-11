@@ -1,6 +1,6 @@
 #include "CpuMonitor.hpp"
 
-CpuMonitor::CpuMonitor(int durationTimeToCheckMS) : durationTimeToCheckMS(durationTimeToCheckMS), lastCpuUsage(0.0) {}
+CpuMonitor::CpuMonitor(int durationTimeToCheckMS, bool &isMonitoringEnable) : durationTimeToCheckMS(durationTimeToCheckMS), isMonitoringEnable(isMonitoringEnable), lastCpuUsage(0.0) {}
 
 void CpuMonitor::startMonitoring()
 {
@@ -29,8 +29,15 @@ void CpuMonitor::readCpuTimes(long long &user, long long &nice, long long &syste
 
 void CpuMonitor::thread_getCPUUsage()
 {
-    while (monitoringActive)
+    while (true)
     {
+        // if monitoring disable
+        if (!this->isMonitoringEnable)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            continue;
+        }
+
         long long user1, nice1, system1, idle1;
         long long user2, nice2, system2, idle2;
 

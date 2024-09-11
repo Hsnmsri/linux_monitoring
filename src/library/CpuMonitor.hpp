@@ -11,7 +11,7 @@
 class CpuMonitor
 {
 public:
-    CpuMonitor(int durationTimeToCheckMS);
+    CpuMonitor(int durationTimeToCheckMS, bool &isMonitoringEnable);
 
     // Starts the thread to monitor CPU usage
     void startMonitoring();
@@ -26,8 +26,8 @@ private:
     // Reads CPU times from /proc/stat
     void readCpuTimes(long long &user, long long &nice, long long &system, long long &idle);
 
+    bool &isMonitoringEnable;
     int durationTimeToCheckMS;
     std::atomic<double> lastCpuUsage;
     std::thread monitorThread;
-    bool monitoringActive = true; // Controls the monitoring loop
 };

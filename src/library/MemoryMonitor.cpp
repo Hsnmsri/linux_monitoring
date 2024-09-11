@@ -1,7 +1,7 @@
 #include "MemoryMonitor.hpp"
 
-MemoryMonitor::MemoryMonitor(int durationTimeToCheckMS)
-    : durationTimeToCheckMS(durationTimeToCheckMS), lastMemoryUsage(0.0) {}
+MemoryMonitor::MemoryMonitor(int durationTimeToCheckMS, bool &isMonitoringEnable)
+    : durationTimeToCheckMS(durationTimeToCheckMS), isMonitoringEnable(isMonitoringEnable), lastMemoryUsage(0.0) {}
 
 void MemoryMonitor::startMonitoring()
 {
@@ -16,8 +16,15 @@ double MemoryMonitor::getLastMemoryUsage() const
 
 void MemoryMonitor::thread_getMemoryUsage()
 {
-    while (monitoringActive)
+    while (true)
     {
+        // if monitoring disable
+        if (!this->isMonitoringEnable)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            continue;
+        }
+
         std::ifstream memInfoFile("/proc/meminfo");
         if (!memInfoFile.is_open())
         {

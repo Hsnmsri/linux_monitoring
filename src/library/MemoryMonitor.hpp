@@ -12,7 +12,7 @@
 class MemoryMonitor
 {
 public:
-    MemoryMonitor(int durationTimeToCheckMS);
+    MemoryMonitor(int durationTimeToCheckMS, bool &isMonitoringEnable);
     void startMonitoring();
     double getLastMemoryUsage() const;
 
@@ -20,7 +20,7 @@ private:
     void thread_getMemoryUsage();
 
     int durationTimeToCheckMS;
+    bool &isMonitoringEnable;
     double lastMemoryUsage;
     std::thread monitorThread;
-    bool monitoringActive = true;
 };

@@ -6,7 +6,8 @@
 
 int main()
 {
-    bool isMonitoringEnable = true;
+    // Monitoring Status
+    bool isMonitoringEnable = false;
 
     Log logger;
     Settings settings;
@@ -21,8 +22,8 @@ int main()
     }
 
     // Monitoring Objects
-    CpuMonitor cpu(settings.getCpuCheckDuration());
-    MemoryMonitor memory(settings.getMemoryCheckDuration());
+    CpuMonitor cpu(settings.getCpuCheckDuration(), isMonitoringEnable);
+    MemoryMonitor memory(settings.getMemoryCheckDuration(), isMonitoringEnable);
     TelegramMonitor telegram(isMonitoringEnable, cpu, memory, settings, logger);
 
     // Start Monitoring
@@ -31,8 +32,10 @@ int main()
     telegram.startTelegramNotificationWatchThread();
     telegram.startTelegramRequestThread();
 
-    while (isMonitoringEnable)
+    // App holder
+    while (true)
     {
+        sleep(60);
         continue;
     }
 

@@ -19,41 +19,107 @@ void TelegramMonitor::thread_telegramBot()
 {
     TgBot::Bot bot(settings.getBotToken());
 
-    // On start
+    // command Start
     bot.getEvents().onCommand("start", [&bot, this](TgBot::Message::Ptr message)
                               {
-        if (message->chat->id != settings.getChatId()) {
-            return;
-        }
-        logger.logToConsole("send /start command");
-        bot.getApi().sendMessage(message->chat->id, "Welcome to LinuxMonitoring\n\nCommands:\n/usage     get server status\n/help     get bot command list \n\nPowered By Mr.Mansouri"); });
+        // check user id
+        if (message->chat->id != settings.getChatId()) return;
 
-    // On usage
-    bot.getEvents().onCommand("usage", [&bot, this](TgBot::Message::Ptr message)
-                              {
-        if (message->chat->id != settings.getChatId()) {
-            return;
-        }
-        logger.logToConsole("send /usage command");
-        bot.getApi().sendMessage(message->chat->id, "CPU : " + std::to_string((int)cpu.getLastCpuUsage()) + "%\nMemory : " + std::to_string((int)memory.getLastMemoryUsage()) + "%"); });
+        // log event
+        logger.logToConsole("send /start command,start monitoring");
 
-    // On usage
+        // enable monitoring
+        this->isMonitoringEnable=true;
+
+        // send user message
+        bot.getApi().sendMessage(message->chat->id, "Welcome to LinuxMonitoring\n"
+        "\nCommands:\n"
+        "/start    start monitoring\n"
+        "/stop     stop monitoring\n"
+        "/status    monitoring status\n"
+        "/usage    get server status\n"
+        "/help     get bot command list\n"
+        "\nMonitoring Status : Enable\n"
+        "\nPowered By Mr.Mansouri"); });
+
+    // command Stop
     bot.getEvents().onCommand("stop", [&bot, this](TgBot::Message::Ptr message)
                               {
-        if (message->chat->id != settings.getChatId()) {
+        // check user id
+        if (message->chat->id != settings.getChatId())return;
+
+        // log event
+        logger.logToConsole("send /stop command,stop monitoring");
+
+        // disbale monitoring
+        this->isMonitoringEnable=false;
+
+        // send message
+        bot.getApi().sendMessage(message->chat->id, 
+        "Monitoring Stopped!\n"
+        "\nMonitoring Status : Disable\n"
+        "\n- To re-enable monitoring, please enter the /start command.\n"
+        "\n- To check monitoring status, please enter the /status command.\n"
+        ); });
+
+    // command Usage
+    bot.getEvents().onCommand("usage", [&bot, this](TgBot::Message::Ptr message)
+                              {
+        // check user id
+        if (message->chat->id != settings.getChatId()) return;
+
+        // log event
+        logger.logToConsole("send /usage command");
+
+        // if monitoring disable
+        if(!this->isMonitoringEnable){
+            bot.getApi().sendMessage(message->chat->id,
+            "Monitoring Status : Disable\n"
+            "\nTo monitor the server again, please enter the /start command."
+            );
             return;
         }
-        this->isMonitoringEnable=false;
-        logger.logToConsole("send /stop command");
-        bot.getApi().sendMessage(message->chat->id, "App Stopped!"); });
 
-    // On help
+        // send message
+        bot.getApi().sendMessage(message->chat->id, 
+        "Server Usage :\n\n"
+        "CPU : " + std::to_string((int)cpu.getLastCpuUsage()) + 
+        "%\nMemory : " + std::to_string((int)memory.getLastMemoryUsage()) + "%"
+        ); });
+
+    // command Help
     bot.getEvents().onCommand("help", [&bot, this](TgBot::Message::Ptr message)
                               {
-        if (message->chat->id != settings.getChatId()) {
-            return;
+        // check user id
+        if (message->chat->id != settings.getChatId()) return;
+        
+        // send message
+        bot.getApi().sendMessage(message->chat->id, 
+        "Commands:\n\n"
+        "/start    start server monitoring\n"
+        "/stop     stop server monitoring\n"
+        "/status   get server monitoring status\n"
+        "/usage    get server usage\n"
+        ); });
+
+    // command Status
+    bot.getEvents().onCommand("status", [&bot, this](TgBot::Message::Ptr message)
+                              {
+        // check user id
+        if (message->chat->id != settings.getChatId()) return;
+        
+        // send message
+        std::string statusString;
+        if(this->isMonitoringEnable){
+            statusString="Enable";
+        }else{
+            statusString="Disable";
         }
-        bot.getApi().sendMessage(message->chat->id, "Commands:\n/usage     get server status"); });
+        bot.getApi().sendMessage(message->chat->id, 
+        "Monitoring Status : " + statusString + "\n"
+        "\n/start    start server monitoring\n"
+        "/stop    stop server monitoring\n"
+        ); });
 
     try
     {
@@ -79,6 +145,13 @@ void TelegramMonitor::thread_telegramNotification()
     // Check usage with limit
     while (true)
     {
+        // if monitoring disable
+        if (!this->isMonitoringEnable)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            continue;
+        }
+
         // Check cpu limit
         if (settings.getCpuLimit() != 0 && settings.getCpuLimit() > 0 && cpu.getLastCpuUsage() >= settings.getCpuLimit())
         {
