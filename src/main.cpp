@@ -10,13 +10,15 @@
 #include <tgbot/tgbot.h>
 #include <nlohmann/json.hpp>
 #include <iomanip>
+#include <Log.hpp>
 
 void thread_getCPUUsage();
 void thread_getMemoryUsage();
 void thread_telegramBot();
 void thread_telegramNotification();
 bool getSetting();
-void log(std::string content);
+
+Log logger;
 
 std::string botToken;
 int64_t chatId;
@@ -32,11 +34,11 @@ using json = nlohmann::json;
 
 int main()
 {
-    log("Linux Monitoring Service Started");
+    logger.logToConsole("Linux Monitoring Service Started");
     // Get settings from setting file
     if (!getSetting())
     {
-        log("Failed to set settings!");
+        logger.logToConsole("Failed to set settings!");
         return 0;
     }
 
@@ -147,7 +149,7 @@ void thread_getMemoryUsage()
 
         if (totalMemory == 0)
         {
-            log("Total memory not found in /proc/meminfo");
+            logger.logToConsole("Total memory not found in /proc/meminfo");
             return;
         }
 
@@ -172,7 +174,7 @@ void thread_telegramBot()
                                 if(message->chat->id!=chatId){
                                     return;
                                 }
-                                log("send /start command");
+                                logger.logToConsole("send /start command");
                                 bot.getApi().sendMessage(message->chat->id, "Welcome to LinuxMonitoring\n\nCommands:\n/usage     get server status\n/help     get bot command list \n\nPowered By Mr.Mansouri"); });
 
     // On usage
@@ -181,7 +183,7 @@ void thread_telegramBot()
                                 if(message->chat->id!=chatId){
                                     return;
                                 }
-                                log("send /usage command");
+                                logger.logToConsole("send /usage command");
                                 bot.getApi().sendMessage(message->chat->id, "CPU : " + std::to_string((int)lastCpuUsage )+ "%\nMemory : " + std::to_string((int)lastMemoryUsage) + "%"); });
 
     // On help
@@ -227,14 +229,14 @@ void thread_telegramNotification()
         // Check cpu limit
         if (cpuLimit != 0 && cpuLimit > 0 && lastCpuUsage >= cpuLimit)
         {
-            log("cpu overload (" + std::to_string((int)lastCpuUsage) + "%)");
+            logger.logToConsole("cpu overload (" + std::to_string((int)lastCpuUsage) + "%)");
             bot.getApi().sendMessage(chatId, "CPU Warning!\nCpu : " + std::to_string((int)lastCpuUsage) + "%");
         }
 
         // Check memory limit
         if (memoryLimit != 0 && memoryLimit > 0 && lastMemoryUsage >= memoryLimit)
         {
-            log("memory overload (" + std::to_string((int)lastMemoryUsage) + "%)");
+            logger.logToConsole("memory overload (" + std::to_string((int)lastMemoryUsage) + "%)");
             bot.getApi().sendMessage(chatId, "Memory Warning!\nMemory : " + std::to_string((int)lastMemoryUsage) + "%");
         }
 
@@ -264,18 +266,4 @@ bool getSetting()
     cpuLimit = (int)settings["cpu_limit"];
     memoryLimit = (int)settings["memory_limit"];
     return true;
-}
-
-void log(std::string content)
-{
-    // Get current time as a system clock time_point
-    auto now = std::chrono::system_clock::now();
-
-    // Convert to time_t (for formatting)
-    std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
-
-    // Convert to local time and format it
-    std::tm *localTime = std::localtime(&currentTime);
-
-    std::cout << "[" << std::put_time(localTime, "%Y-%m-%d %H:%M:%S") << "] " << content << std::endl;
 }
