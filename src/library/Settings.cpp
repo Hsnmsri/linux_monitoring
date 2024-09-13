@@ -54,6 +54,7 @@ bool Settings::getSetting()
     // Access values from the JSON object
     botToken = settings["bot_token"];
     chatId = (int64_t)settings["chat_id"];
+    app_version = settings["version"];
     cpuCheckDuration = (int)settings["cpu_check_duration"];
     memoryCheckDuration = (int)settings["memory_check_duration"];
     cpuLimit = (int)settings["cpu_limit"];

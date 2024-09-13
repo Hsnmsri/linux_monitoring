@@ -13,14 +13,14 @@ int main()
     Log logger;
     Settings settings;
 
-    logger.logToConsole("Linux Monitoring Service Started");
-
     // Get settings from setting file
     if (!settings.getSetting())
     {
         logger.logToConsole("Failed to set settings!");
         return 0;
     }
+
+    logger.logToConsole("Linux Monitoring v" + settings.getAppVersion() + " Service Started");
 
     // Monitoring Objects
     CpuMonitor cpu(settings.getCpuCheckDuration(), isMonitoringEnable);
