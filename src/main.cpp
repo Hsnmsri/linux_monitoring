@@ -21,7 +21,7 @@ int main()
     }
 
     logger.logToConsole("Linux Monitoring v" + settings.getAppVersion() + " Service Started");
-
+    logger.logToConsole(settings.getServerName());
     // Monitoring Objects
     CpuMonitor cpu(settings.getCpuCheckDuration(), isMonitoringEnable);
     MemoryMonitor memory(settings.getMemoryCheckDuration(), isMonitoringEnable);

@@ -19,6 +19,7 @@ public:
     std::string getBotToken() const { return botToken; }
     int64_t getChatId() const { return chatId; }
     std::string getAppVersion() const { return app_version; }
+    std::string getServerName() const { return server_name; }
     int getCpuCheckDuration() const { return cpuCheckDuration; }
     int getMemoryCheckDuration() const { return memoryCheckDuration; }
     int getCpuLimit() const { return cpuLimit; }
@@ -28,6 +29,7 @@ private:
     std::string botToken;
     int64_t chatId;
     std::string app_version;
+    std::string server_name;
     int cpuCheckDuration;
     int memoryCheckDuration;
     int cpuLimit;
