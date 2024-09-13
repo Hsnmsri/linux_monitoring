@@ -1,33 +1,14 @@
-#!/bin/bash
-
 # update apt package list
 sudo apt update
 
 # install wget
 sudo apt install -y wget
 
-# install unzip
-sudo apt install -y unzip
-
-# install g++
-sudo apt install -y g++
-
 # install lib curl
 sudo apt install -y libcurl4-openssl-dev
 
 # install and build tg-bot lib
-sudo apt install -y make binutils cmake libboost-system-dev libssl-dev zlib1g-dev
-
-# build tgbot
-cd /opt
-wget https://github.com/reo7sp/tgbot-cpp/archive/refs/tags/v1.8.zip
-unzip v1.8.zip
-rm v1.8.zip
-mv tgbot-cpp-1.8 tgbot
-cd tgbot
-cmake .
-make -j4
-sudo make install
+sudo apt install -y make binutils libboost-system-dev libssl-dev zlib1g-dev
 
 # install nlohmann json
 sudo apt install -y nlohmann-json3-dev
@@ -35,7 +16,7 @@ sudo apt install -y nlohmann-json3-dev
 # install Linux Monitoring
 mkdir -p /opt/linux_monitoring
 cd /opt/linux_monitoring
-wget https://github.com/Hsnmsri/linux_monitoring/releases/download/v1.0.0/LinuxMonitoring
+wget https://github.com/Hsnmsri/linux_monitoring/releases/download/v1.1.0/LinuxMonitoring
 sudo chmod +x /opt/linux_monitoring/LinuxMonitoring
 
 # create settings
@@ -54,8 +35,9 @@ memory_limit=${memory_limit:-30}
 
 # create settings.json file
 cd /opt/linux_monitoring
-cat <<EOF > settings.json
+cat <<EOF >settings.json
 {
+  "version":"1.1.0",
   "bot_token": "$bot_token",
   "chat_id": $chat_id,
   "cpu_check_duration": $cpu_check_duration,
