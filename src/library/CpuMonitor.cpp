@@ -1,6 +1,6 @@
 #include "CpuMonitor.hpp"
 
-CpuMonitor::CpuMonitor(int durationTimeToCheckMS, bool &isMonitoringEnable) : durationTimeToCheckMS(durationTimeToCheckMS), isMonitoringEnable(isMonitoringEnable), lastCpuUsage(0.0) {}
+CpuMonitor::CpuMonitor(int durationTimeToCheckMS) : durationTimeToCheckMS(durationTimeToCheckMS), lastCpuUsage(0.0), monitoringCpuStatus(false) {}
 
 /**
  * @brief Starts monitoring the CPU usage.
@@ -18,6 +18,14 @@ CpuMonitor::CpuMonitor(int durationTimeToCheckMS, bool &isMonitoringEnable) : du
  */
 void CpuMonitor::startMonitoring()
 {
+    // if monitoring enabled
+    if (this->monitoringCpuStatus)
+    {
+        return;
+    }
+
+    // if monitoring disabled
+    this->monitoringCpuStatus = true;
     monitorThread = std::thread(&CpuMonitor::thread_getCPUUsage, this);
     monitorThread.detach(); // Detach the thread so it runs in the background
 }
@@ -95,15 +103,8 @@ void CpuMonitor::readCpuTimes(long long &user, long long &nice, long long &syste
  */
 void CpuMonitor::thread_getCPUUsage()
 {
-    while (true)
+    while (this->monitoringCpuStatus)
     {
-        // if monitoring disable
-        if (!this->isMonitoringEnable)
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-            continue;
-        }
-
         long long user1, nice1, system1, idle1;
         long long user2, nice2, system2, idle2;
 
@@ -132,4 +133,21 @@ void CpuMonitor::thread_getCPUUsage()
         // Sleep for the CPU check duration from the settings
         std::this_thread::sleep_for(std::chrono::milliseconds(this->durationTimeToCheckMS));
     }
+}
+
+/**
+ * @brief Stops the CPU monitoring process.
+ * 
+ * This function sets the `monitoringCpuStatus` flag to `false`, 
+ * indicating that the CPU monitoring should be stopped. Any ongoing
+ * monitoring activities will cease, and the system will no longer
+ * collect or process CPU usage data.
+ * 
+ * This method should be called when monitoring is no longer needed
+ * to ensure that resources are released and the monitoring process 
+ * is gracefully terminated.
+ */
+void CpuMonitor::stopMonitoring()
+{
+    this->monitoringCpuStatus = false;
 }
