@@ -17,6 +17,7 @@ public:
 
     void startTelegramRequestThread();
     void startTelegramNotificationWatchThread();
+    void stopTelegramNotificationWatchThread();
 
 private:
     void thread_telegramBot();
@@ -27,6 +28,7 @@ private:
     CpuMonitor &cpu;
     MemoryMonitor &memory;
     bool &isMonitoringEnable;
+    bool tgNotificationStatus;
     std::thread botRequestThread;
     std::thread notificationThread;
 };

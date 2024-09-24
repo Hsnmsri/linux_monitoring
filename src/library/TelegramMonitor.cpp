@@ -1,7 +1,7 @@
 #include "TelegramMonitor.hpp"
 
 TelegramMonitor::TelegramMonitor(bool &isMonitoringEnable, CpuMonitor &cpu, MemoryMonitor &memory, const Settings settings, Log logger)
-    : isMonitoringEnable(isMonitoringEnable), cpu(cpu), memory(memory), settings(settings), logger(logger) {}
+    : isMonitoringEnable(isMonitoringEnable), cpu(cpu), memory(memory), settings(settings), logger(logger), tgNotificationStatus(false) {}
 
 /**
  * @brief Starts a new thread to handle Telegram bot requests.
@@ -70,6 +70,14 @@ void TelegramMonitor::startTelegramRequestThread()
  */
 void TelegramMonitor::startTelegramNotificationWatchThread()
 {
+    // if monitoring enabled
+    if (this->tgNotificationStatus)
+    {
+        return;
+    }
+
+    // if monitoring disabled
+    this->tgNotificationStatus = true;
     notificationThread = std::thread(&TelegramMonitor::thread_telegramNotification, this);
     notificationThread.detach();
 }
@@ -285,15 +293,8 @@ void TelegramMonitor::thread_telegramNotification()
     TgBot::Bot bot(settings.getBotToken());
 
     // Check usage with limit
-    while (true)
+    while (this->tgNotificationStatus)
     {
-        // if monitoring disable
-        if (!this->isMonitoringEnable)
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-            continue;
-        }
-
         // Check cpu limit
         if (settings.getCpuLimit() != 0 && settings.getCpuLimit() > 0 && cpu.getLastCpuUsage() >= settings.getCpuLimit())
         {
@@ -310,4 +311,22 @@ void TelegramMonitor::thread_telegramNotification()
 
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
+}
+
+/**
+ * @brief Stops the Telegram notification watching thread.
+ *
+ * This function sets the `tgNotificationStatus` flag to `false`,
+ * indicating that the monitoring of Telegram notifications should
+ * cease. As a result, the associated thread responsible for
+ * observing notifications will be terminated, and the system will
+ * no longer process incoming Telegram messages for monitoring.
+ *
+ * It is important to call this method when notification monitoring
+ * is no longer needed to ensure proper resource management and
+ * graceful termination of the associated thread.
+ */
+void TelegramMonitor::stopTelegramNotificationWatchThread()
+{
+    this->tgNotificationStatus = false;
 }
