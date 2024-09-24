@@ -12,15 +12,16 @@
 class MemoryMonitor
 {
 public:
-    MemoryMonitor(int durationTimeToCheckMS, bool &isMonitoringEnable);
+    MemoryMonitor(int durationTimeToCheckMS);
     void startMonitoring();
+    void stopMonitoring();
     double getLastMemoryUsage() const;
 
 private:
     void thread_getMemoryUsage();
 
+    bool monitoringMemoryStatus;
     int durationTimeToCheckMS;
-    bool &isMonitoringEnable;
     double lastMemoryUsage;
     std::thread monitorThread;
 };

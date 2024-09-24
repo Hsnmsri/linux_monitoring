@@ -1,7 +1,7 @@
 #include "MemoryMonitor.hpp"
 
-MemoryMonitor::MemoryMonitor(int durationTimeToCheckMS, bool &isMonitoringEnable)
-    : durationTimeToCheckMS(durationTimeToCheckMS), isMonitoringEnable(isMonitoringEnable), lastMemoryUsage(0.0) {}
+MemoryMonitor::MemoryMonitor(int durationTimeToCheckMS)
+    : durationTimeToCheckMS(durationTimeToCheckMS), lastMemoryUsage(0.0), monitoringMemoryStatus(false) {}
 
 /**
  * @brief Starts monitoring memory usage by launching a background thread.
@@ -30,6 +30,14 @@ MemoryMonitor::MemoryMonitor(int durationTimeToCheckMS, bool &isMonitoringEnable
  */
 void MemoryMonitor::startMonitoring()
 {
+    // if monitoring enabled
+    if (this->monitoringMemoryStatus)
+    {
+        return;
+    }
+
+    // if monitoring disabled
+    this->monitoringMemoryStatus = true;
     monitorThread = std::thread(&MemoryMonitor::thread_getMemoryUsage, this);
     monitorThread.detach(); // Detach the thread so it runs in the background
 }
@@ -94,15 +102,8 @@ double MemoryMonitor::getLastMemoryUsage() const
  */
 void MemoryMonitor::thread_getMemoryUsage()
 {
-    while (true)
+    while (this->monitoringMemoryStatus)
     {
-        // if monitoring disable
-        if (!this->isMonitoringEnable)
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-            continue;
-        }
-
         std::ifstream memInfoFile("/proc/meminfo");
         if (!memInfoFile.is_open())
         {
@@ -151,4 +152,21 @@ void MemoryMonitor::thread_getMemoryUsage()
         // Sleep for the memory check duration from the settings
         std::this_thread::sleep_for(std::chrono::milliseconds(this->durationTimeToCheckMS));
     }
+}
+
+/**
+ * @brief Stops the memory monitoring process.
+ *
+ * This function sets the `monitoringMemoryStatus` flag to `false`,
+ * indicating that memory monitoring should be stopped. As a result,
+ * any ongoing memory usage tracking will cease, and the system will
+ * no longer collect or process memory usage data.
+ *
+ * It is essential to call this method when memory monitoring is
+ * no longer required to free up resources and ensure the monitoring
+ * process is gracefully terminated.
+ */
+void MemoryMonitor::stopMonitoring()
+{
+    this->monitoringMemoryStatus = false;
 }
