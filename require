@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Check if the require.list file exists in the current directory
+if [ -f "require.list" ]; then
+    # Read the contents of require.list and install each package
+    while IFS= read -r package; do
+        echo "Installing $package..."
+        sudo apt install -y "$package"
+    done < require.list
+else
+    # If the file doesn't exist, print an error message
+    echo "Error: require.list file not found in the current directory."
+fi
