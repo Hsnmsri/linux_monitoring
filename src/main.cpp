@@ -23,12 +23,10 @@ int main()
 
 int app()
 {
-    // Monitoring Status
-    bool isMonitoringEnable = false;
-
     // Objects
     Log logger;
     Settings settings;
+    bool isMonitoringEnable;
 
     // Get settings from setting file
     if (!settings.getSetting())
@@ -37,8 +35,12 @@ int app()
         return 1;
     }
 
+    // set monitoring default status
+    isMonitoringEnable = settings.getDefaultMonitoringStatus();
+
     logger.logToConsole("Linux Monitoring v" + settings.getAppVersion() + " Service Started");
     logger.logToConsole(settings.getServerName());
+    
     // Monitoring Objects
     CpuMonitor cpu(settings.getCpuCheckDuration());
     MemoryMonitor memory(settings.getMemoryCheckDuration());
