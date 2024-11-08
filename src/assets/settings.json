@@ -2,6 +2,7 @@
   "version": "1.2.0",
   "server_name": "",
   "bot_token": "",
+  "default_monitoring_status": false,
   "chat_id": 11,
   "cpu_check_duration": 500,
   "memory_check_duration": 500,

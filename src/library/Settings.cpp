@@ -60,6 +60,7 @@ bool Settings::getSetting()
     memoryCheckDuration = (int)settings["memory_check_duration"];
     cpuLimit = (int)settings["cpu_limit"];
     memoryLimit = (int)settings["memory_limit"];
+    defaultMonitoringStatus = (bool)settings["default_monitoring_status"];
 
     return true;
 }

@@ -24,6 +24,7 @@ public:
     int getMemoryCheckDuration() const { return memoryCheckDuration; }
     int getCpuLimit() const { return cpuLimit; }
     int getMemoryLimit() const { return memoryLimit; }
+    bool getDefaultMonitoringStatus() const { return defaultMonitoringStatus; }
 
 private:
     std::string botToken;
@@ -34,4 +35,5 @@ private:
     int memoryCheckDuration;
     int cpuLimit;
     int memoryLimit;
+    bool defaultMonitoringStatus;
 };
