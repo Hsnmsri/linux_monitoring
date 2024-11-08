@@ -54,6 +54,10 @@ For developers looking to contribute to or modify the Linux Monitoring Service, 
     cd linux_monitoring
     ```
 2.  Install Dependencies: Install the required dependencies using the following command:
+    ```bash
+    sudo chmod +x require 
+    ./require
+    ```
 
 3.  Build the Project: To build the project, you can use g++ or CMake (if a CMakeLists.txt is provided):
     ```bash
