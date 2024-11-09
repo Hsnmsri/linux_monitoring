@@ -31,8 +31,16 @@ int app()
     // Get settings from setting file
     if (!settings.getSetting())
     {
-        logger.logToConsole("Failed to set settings!");
-        return 1;
+        logger.logToConsole("Failed to load setting file . building setting...");
+
+        // build setting file
+        if (!settings.createSettingsFile())
+        {
+            logger.logToConsole("Failed to create setting(settings.json) file");
+            return 1;
+        }
+
+        settings.getSetting();
     }
 
     // set monitoring default status
@@ -40,7 +48,7 @@ int app()
 
     logger.logToConsole("Linux Monitoring v" + settings.getAppVersion() + " Service Started");
     logger.logToConsole(settings.getServerName());
-    
+
     // Monitoring Objects
     CpuMonitor cpu(settings.getCpuCheckDuration());
     MemoryMonitor memory(settings.getMemoryCheckDuration());

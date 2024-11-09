@@ -14,6 +14,7 @@ public:
 
     // Load settings from the JSON file
     bool getSetting();
+    bool createSettingsFile();
 
     // Getter functions to access private member variables
     std::string getBotToken() const { return botToken; }
