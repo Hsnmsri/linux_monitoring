@@ -11,3 +11,15 @@ else
     # If the file doesn't exist, print an error message
     echo "Error: require.list file not found in the current directory."
 fi
+
+# Make install tgbot
+sudo apt install g++ make binutils cmake libboost-system-dev libssl-dev zlib1g-dev libcurl4-openssl-dev -y
+sudo apt install libboost-test-dev doxygen -y
+cd /tmp
+git clone https://github.com/reo7sp/tgbot-cpp
+cd tgbot-cpp
+cmake .
+make -j4
+sudo make install
+cd ..
+sudo rm -r tgbot-cpp
