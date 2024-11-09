@@ -6,8 +6,8 @@
 #include <sstream>
 #include <thread>
 #include <chrono>
-#include "Settings.hpp" // Include your Settings class header
-#include "Log.hpp"      // Include your Log class header
+#include "settings/Settings.hpp" // Include your Settings class header
+#include "log/Log.hpp"      // Include your Log class header
 
 class MemoryMonitor
 {

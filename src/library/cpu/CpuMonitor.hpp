@@ -6,7 +6,7 @@
 #include <thread>
 #include <chrono>
 #include <atomic>
-#include "Settings.hpp" // Include the settings class
+#include "settings/Settings.hpp"
 
 class CpuMonitor
 {

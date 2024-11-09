@@ -5,10 +5,10 @@
 #include <thread>
 #include <chrono>
 #include <string>
-#include "Settings.hpp"
-#include "Log.hpp"
-#include "CpuMonitor.hpp"
-#include "MemoryMonitor.hpp"
+#include "settings/Settings.hpp"
+#include "log/Log.hpp"
+#include "cpu/CpuMonitor.hpp"
+#include "memory/MemoryMonitor.hpp"
 
 class TelegramMonitor
 {
