@@ -77,6 +77,8 @@
         "variant": "cpp",
         "forward_list": "cpp",
         "ranges": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "bitset": "cpp",
+        "cfenv": "cpp"
     }
 }
