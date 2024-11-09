@@ -1,8 +1,8 @@
-#include <Log.hpp>
-#include <Settings.hpp>
-#include <CpuMonitor.hpp>
-#include <MemoryMonitor.hpp>
-#include <TelegramMonitor.hpp>
+#include "log/Log.hpp"
+#include "settings/Settings.hpp"
+#include "cpu/CpuMonitor.hpp"
+#include "memory/MemoryMonitor.hpp"
+#include "telegram/TelegramMonitor.hpp"
 
 int app();
 
