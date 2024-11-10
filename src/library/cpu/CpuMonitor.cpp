@@ -27,7 +27,9 @@ void CpuMonitor::startMonitoring()
     // if monitoring disabled
     this->monitoringCpuStatus = true;
     monitorThread = std::thread(&CpuMonitor::thread_getCPUUsage, this);
-    monitorThread.detach(); // Detach the thread so it runs in the background
+
+    // Detach the thread so it runs in the background
+    monitorThread.detach();
 }
 
 /**
@@ -137,14 +139,14 @@ void CpuMonitor::thread_getCPUUsage()
 
 /**
  * @brief Stops the CPU monitoring process.
- * 
- * This function sets the `monitoringCpuStatus` flag to `false`, 
+ *
+ * This function sets the `monitoringCpuStatus` flag to `false`,
  * indicating that the CPU monitoring should be stopped. Any ongoing
  * monitoring activities will cease, and the system will no longer
  * collect or process CPU usage data.
- * 
+ *
  * This method should be called when monitoring is no longer needed
- * to ensure that resources are released and the monitoring process 
+ * to ensure that resources are released and the monitoring process
  * is gracefully terminated.
  */
 void CpuMonitor::stopMonitoring()

@@ -22,6 +22,11 @@ public:
 private:
     void thread_telegramBot();
     void thread_telegramNotification();
+    void handleStartCommand(TgBot::Message::Ptr message);
+    void handleStopCommand(TgBot::Message::Ptr message);
+    void handleUsageCommand(TgBot::Message::Ptr message);
+    void handleHelpCommand(TgBot::Message::Ptr message);
+    void handleStatusCommand(TgBot::Message::Ptr message);
 
     Log logger;
     Settings settings;
@@ -31,4 +36,5 @@ private:
     bool tgNotificationStatus;
     std::thread botRequestThread;
     std::thread notificationThread;
+    TgBot::Bot bot;
 };

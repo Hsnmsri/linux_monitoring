@@ -5,8 +5,8 @@ mkdir -p src/build
 cp src/assets/settings.json src/build -n
 
 # compile project
-g++ -I src/library -I src/library/log -I src/library/settings -I src/library/cpu -I src/library/memory -I src/library/telegram \
-    src/library/log/Log.cpp src/library/settings/Settings.cpp src/library/cpu/CpuMonitor.cpp src/library/memory/MemoryMonitor.cpp src/library/telegram/TelegramMonitor.cpp \
+g++ -I src/library -I src/library/log -I src/library/settings -I src/library/cpu -I src/library/memory -I src/library/telegram -I src/library/app \
+    src/library/log/Log.cpp src/library/settings/Settings.cpp src/library/cpu/CpuMonitor.cpp src/library/memory/MemoryMonitor.cpp src/library/telegram/TelegramMonitor.cpp src/library/app/App.cpp \
     src/main.cpp -o src/build/LinuxMonitoring \
     -pthread -lcurl --std=c++14 -I/usr/local/include -lTgBot -lboost_system -lssl -lcrypto -lpthread
 

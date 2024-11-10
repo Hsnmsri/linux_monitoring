@@ -1,16 +1,11 @@
-#include "log/Log.hpp"
-#include "settings/Settings.hpp"
-#include "cpu/CpuMonitor.hpp"
-#include "memory/MemoryMonitor.hpp"
-#include "telegram/TelegramMonitor.hpp"
-
-int app();
+#include "app/App.hpp"
 
 int main()
 {
     try
     {
-        return app();
+        App app;
+        app.execute();
     }
     catch (const std::exception &e)
     {
@@ -19,62 +14,4 @@ int main()
     }
 
     return 0;
-}
-
-int app()
-{
-    // Objects
-    Log logger;
-    Settings settings;
-    bool isMonitoringEnable;
-
-    // Get settings from setting file
-    if (!settings.getSetting())
-    {
-        logger.logToConsole("Failed to load setting file . building setting...");
-
-        // build setting file
-        if (!settings.createSettingsFile())
-        {
-            logger.logToConsole("Failed to create setting(settings.json) file");
-            return 1;
-        }
-
-        settings.getSetting();
-    }
-
-    // set monitoring default status
-    isMonitoringEnable = settings.getDefaultMonitoringStatus();
-
-    logger.logToConsole("Linux Monitoring v" + settings.getAppVersion() + " Service Started");
-    logger.logToConsole(settings.getServerName());
-
-    // Monitoring Objects
-    CpuMonitor cpu(settings.getCpuCheckDuration());
-    MemoryMonitor memory(settings.getMemoryCheckDuration());
-    TelegramMonitor telegram(isMonitoringEnable, cpu, memory, settings, logger);
-
-    // Start Monitoring
-    telegram.startTelegramRequestThread();
-
-    // App holder
-    while (true)
-    {
-        // Start Monitoring
-        if (isMonitoringEnable)
-        {
-            cpu.startMonitoring();
-            memory.startMonitoring();
-            telegram.startTelegramNotificationWatchThread();
-        }
-        // Stop Monitoring
-        if (!isMonitoringEnable)
-        {
-            cpu.stopMonitoring();
-            memory.stopMonitoring();
-            telegram.stopTelegramNotificationWatchThread();
-        }
-        sleep(1);
-        continue;
-    }
 }
