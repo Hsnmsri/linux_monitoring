@@ -1,7 +1,9 @@
 #include "TelegramMonitor.hpp"
 
 TelegramMonitor::TelegramMonitor(bool &isMonitoringEnable, CpuMonitor &cpu, MemoryMonitor &memory, const Settings settings, Log logger)
-    : isMonitoringEnable(isMonitoringEnable), cpu(cpu), memory(memory), settings(settings), logger(logger), tgNotificationStatus(false) {}
+    : isMonitoringEnable(isMonitoringEnable), cpu(cpu), memory(memory), settings(settings), logger(logger), tgNotificationStatus(false), bot(settings.getBotToken())
+{
+}
 
 /**
  * @brief Starts a new thread to handle Telegram bot requests.
@@ -83,159 +85,157 @@ void TelegramMonitor::startTelegramNotificationWatchThread()
 }
 
 /**
- * @brief Handles incoming Telegram bot commands and interacts with users.
+ * @brief Handles the /start command to initiate monitoring.
  *
- * This method initializes a Telegram bot and sets up event handlers for various bot commands.
- * The bot listens for commands such as /start, /stop, /usage, /help, and /status. Based on the
- * received command, it performs actions such as starting or stopping monitoring, sending server
- * usage statistics, and providing help or status information.
+ * Checks if the user ID matches the allowed chat ID, logs the start command,
+ * enables monitoring, and sends a welcome message with available commands to the user.
  *
- * The method operates as follows:
+ * @param message Pointer to the incoming message containing the /start command.
+ */
+void TelegramMonitor::handleStartCommand(TgBot::Message::Ptr message)
+{
+    if (message->chat->id != settings.getChatId())
+        return;
+
+    logger.logToConsole("send /start command, start monitoring");
+    this->isMonitoringEnable = true;
+
+    bot.getApi().sendMessage(message->chat->id,
+                             "Welcome to LinuxMonitoring\n"
+                             "\nCommands:\n"
+                             "/start    start monitoring\n"
+                             "/stop     stop monitoring\n"
+                             "/status   monitoring status\n"
+                             "/usage    get server status\n"
+                             "/help     get bot command list\n"
+                             "\nMonitoring Status : Enable\n"
+                             "\nPowered By Mr.Mansouri");
+}
+
+/**
+ * @brief Handles the /stop command to disable monitoring.
  *
- * 1. **Bot Initialization**: Creates an instance of `TgBot::Bot` using the bot token retrieved
- *    from settings.
+ * Checks if the user ID matches the allowed chat ID, logs the stop command,
+ * disables monitoring, and notifies the user that monitoring has been stopped.
  *
- * 2. **Command Handlers**:
- *    - **start**: Enables monitoring if the chat ID matches the expected ID, logs the event,
- *      and sends a welcome message with a list of available commands. Updates the monitoring
- *      status to "Enable".
- *    - **stop**: Disables monitoring if the chat ID matches, logs the event, and sends a
- *      message indicating that monitoring has stopped. Updates the monitoring status to "Disable".
- *    - **usage**: Sends current server usage statistics (CPU and memory) if monitoring is enabled.
- *      If monitoring is disabled, it sends a message indicating how to re-enable monitoring.
- *    - **help**: Sends a message listing available commands to help the user interact with the bot.
- *    - **status**: Sends the current monitoring status ("Enable" or "Disable") along with
- *      instructions for starting or stopping monitoring.
+ * @param message Pointer to the incoming message containing the /stop command.
+ */
+void TelegramMonitor::handleStopCommand(TgBot::Message::Ptr message)
+{
+    if (message->chat->id != settings.getChatId())
+        return;
+
+    logger.logToConsole("send /stop command, stop monitoring");
+    this->isMonitoringEnable = false;
+
+    bot.getApi().sendMessage(message->chat->id,
+                             "Monitoring Stopped!\n"
+                             "\nMonitoring Status : Disable\n"
+                             "\n- To re-enable monitoring, please enter the /start command.\n"
+                             "\n- To check monitoring status, please enter the /status command.\n");
+}
+
+/**
+ * @brief Handles the /usage command to report server CPU and memory usage.
  *
- * 3. **Bot Polling**: Sets up a `TgBot::TgLongPoll` object for long polling to receive updates
- *    from the Telegram server. Enters an infinite loop, continuously calling `longPoll.start()`
- *    to process incoming messages and commands.
+ * Checks if the user ID matches the allowed chat ID and logs the usage command.
+ * If monitoring is enabled, sends the current CPU and memory usage to the user.
+ * If monitoring is disabled, informs the user that monitoring is inactive.
  *
- * 4. **Error Handling**: Catches and logs any exceptions thrown by the Telegram Bot API, ensuring
- *    that errors are reported for debugging purposes.
+ * @param message Pointer to the incoming message containing the /usage command.
+ */
+void TelegramMonitor::handleUsageCommand(TgBot::Message::Ptr message)
+{
+    if (message->chat->id != settings.getChatId())
+        return;
+
+    logger.logToConsole("send /usage command");
+
+    if (!this->isMonitoringEnable)
+    {
+        bot.getApi().sendMessage(message->chat->id,
+                                 "Monitoring Status : Disable\n"
+                                 "\nTo monitor the server again, please enter the /start command.");
+        return;
+    }
+
+    bot.getApi().sendMessage(message->chat->id,
+                             "Server Usage :\n\n"
+                             "CPU : " +
+                                 std::to_string(static_cast<int>(cpu.getLastCpuUsage())) +
+                                 "%\nMemory : " + std::to_string(static_cast<int>(memory.getLastMemoryUsage())) + "%");
+}
+
+/**
+ * @brief Handles the /help command to display available bot commands.
  *
- * **Note**: Ensure that the `settings.getChatId()` and `settings.getBotToken()` methods return
- * correct values for the bot to function properly. The bot must be properly configured in Telegram
- * and have the necessary permissions to interact with users.
+ * Checks if the user ID matches the allowed chat ID and sends a list of all available
+ * bot commands to the user, explaining their usage.
  *
- * Example usage:
- * @code
- * TelegramMonitor monitor;
- *monitor.startTelegramBot();
- * // The bot will now be running and handling commands.
- *@endcode
- **/
+ * @param message Pointer to the incoming message containing the /help command.
+ */
+void TelegramMonitor::handleHelpCommand(TgBot::Message::Ptr message)
+{
+    if (message->chat->id != settings.getChatId())
+        return;
+
+    bot.getApi().sendMessage(message->chat->id,
+                             "Commands:\n\n"
+                             "/start    start server monitoring\n"
+                             "/stop     stop server monitoring\n"
+                             "/status   get server monitoring status\n"
+                             "/usage    get server usage\n");
+}
+
+/**
+ * @brief Handles the /status command to report monitoring status.
+ *
+ * Checks if the user ID matches the allowed chat ID and sends the current
+ * monitoring status (enabled or disabled) to the user.
+ *
+ * @param message Pointer to the incoming message containing the /status command.
+ */
+void TelegramMonitor::handleStatusCommand(TgBot::Message::Ptr message)
+{
+    if (message->chat->id != settings.getChatId())
+        return;
+
+    std::string statusString = this->isMonitoringEnable ? "Enable" : "Disable";
+    bot.getApi().sendMessage(message->chat->id,
+                             "Monitoring Status : " + statusString + "\n"
+                                                                     "\n/start    start server monitoring\n"
+                                                                     "/stop     stop server monitoring\n");
+}
+
+/**
+ * @brief Initializes Telegram bot commands and enters a long polling loop.
+ *
+ * Registers handlers for various bot commands (/start, /stop, /usage, /help, /status)
+ * by associating each command with its respective function. Then, starts a long polling
+ * loop to keep the bot actively processing incoming messages and commands.
+ *
+ * This function also outputs bot and user details (username, chat ID, API token)
+ * for debugging purposes.
+ */
 void TelegramMonitor::thread_telegramBot()
 {
-    TgBot::Bot bot(settings.getBotToken());
-
-    // command Start
-    bot.getEvents().onCommand("start", [&bot, this](TgBot::Message::Ptr message)
-                              {
-        // check user id
-        if (message->chat->id != settings.getChatId()) return;
-
-        // log event
-        logger.logToConsole("send /start command,start monitoring");
-
-        // enable monitoring
-        this->isMonitoringEnable=true;
-
-        // send user message
-        bot.getApi().sendMessage(message->chat->id, "Welcome to LinuxMonitoring\n"
-        "\nCommands:\n"
-        "/start    start monitoring\n"
-        "/stop     stop monitoring\n"
-        "/status    monitoring status\n"
-        "/usage    get server status\n"
-        "/help     get bot command list\n"
-        "\nMonitoring Status : Enable\n"
-        "\nPowered By Mr.Mansouri"); });
-
-    // command Stop
-    bot.getEvents().onCommand("stop", [&bot, this](TgBot::Message::Ptr message)
-                              {
-        // check user id
-        if (message->chat->id != settings.getChatId())return;
-
-        // log event
-        logger.logToConsole("send /stop command,stop monitoring");
-
-        // disbale monitoring
-        this->isMonitoringEnable=false;
-
-        // send message
-        bot.getApi().sendMessage(message->chat->id, 
-        "Monitoring Stopped!\n"
-        "\nMonitoring Status : Disable\n"
-        "\n- To re-enable monitoring, please enter the /start command.\n"
-        "\n- To check monitoring status, please enter the /status command.\n"
-        ); });
-
-    // command Usage
-    bot.getEvents().onCommand("usage", [&bot, this](TgBot::Message::Ptr message)
-                              {
-        // check user id
-        if (message->chat->id != settings.getChatId()) return;
-
-        // log event
-        logger.logToConsole("send /usage command");
-
-        // if monitoring disable
-        if(!this->isMonitoringEnable){
-            bot.getApi().sendMessage(message->chat->id,
-            "Monitoring Status : Disable\n"
-            "\nTo monitor the server again, please enter the /start command."
-            );
-            return;
-        }
-
-        // send message
-        bot.getApi().sendMessage(message->chat->id, 
-        "Server Usage :\n\n"
-        "CPU : " + std::to_string((int)cpu.getLastCpuUsage()) + 
-        "%\nMemory : " + std::to_string((int)memory.getLastMemoryUsage()) + "%"
-        ); });
-
-    // command Help
-    bot.getEvents().onCommand("help", [&bot, this](TgBot::Message::Ptr message)
-                              {
-        // check user id
-        if (message->chat->id != settings.getChatId()) return;
-        
-        // send message
-        bot.getApi().sendMessage(message->chat->id, 
-        "Commands:\n\n"
-        "/start    start server monitoring\n"
-        "/stop     stop server monitoring\n"
-        "/status   get server monitoring status\n"
-        "/usage    get server usage\n"
-        ); });
-
-    // command Status
-    bot.getEvents().onCommand("status", [&bot, this](TgBot::Message::Ptr message)
-                              {
-        // check user id
-        if (message->chat->id != settings.getChatId()) return;
-        
-        // send message
-        std::string statusString;
-        if(this->isMonitoringEnable){
-            statusString="Enable";
-        }else{
-            statusString="Disable";
-        }
-        bot.getApi().sendMessage(message->chat->id, 
-        "Monitoring Status : " + statusString + "\n"
-        "\n/start    start server monitoring\n"
-        "/stop    stop server monitoring\n"
-        ); });
+    bot.getEvents().onCommand("start", [this](TgBot::Message::Ptr message)
+                              { handleStartCommand(message); });
+    bot.getEvents().onCommand("stop", [this](TgBot::Message::Ptr message)
+                              { handleStopCommand(message); });
+    bot.getEvents().onCommand("usage", [this](TgBot::Message::Ptr message)
+                              { handleUsageCommand(message); });
+    bot.getEvents().onCommand("help", [this](TgBot::Message::Ptr message)
+                              { handleHelpCommand(message); });
+    bot.getEvents().onCommand("status", [this](TgBot::Message::Ptr message)
+                              { handleStatusCommand(message); });
 
     try
     {
         std::cout << "Bot Username : " << bot.getApi().getMe()->username.c_str() << std::endl;
         std::cout << "User ChatID : " << settings.getChatId() << std::endl;
         std::cout << "Bot API Token : " << settings.getBotToken() << std::endl;
+
         TgBot::TgLongPoll longPoll(bot);
         while (true)
         {
