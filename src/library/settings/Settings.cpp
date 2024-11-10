@@ -70,7 +70,7 @@ bool Settings::createSettingsFile()
     json settings;
 
     // Temporary variables to hold user input
-    std::string botToken, appVersion = "1.2.2", serverName;
+    std::string botToken, appVersion = "1.2.3", serverName;
     int64_t chatId;
     int cpuCheckDuration, memoryCheckDuration, cpuLimit, memoryLimit;
     bool defaultMonitoringStatus;
