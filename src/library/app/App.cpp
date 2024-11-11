@@ -1,6 +1,6 @@
 #include "App.hpp"
 
-App::App(){}
+App::App() {}
 
 int App::execute()
 {
@@ -47,7 +47,7 @@ bool App::checkSetting()
 void App::printWelcome()
 {
     this->logger.logToConsole("Linux Monitoring v" + this->settings.getAppVersion() + " Service Started");
-    this->logger.logToConsole(this->settings.getServerName());
+    this->logger.logToConsole(this->settings.getNodeName());
 }
 
 void App::hold(CpuMonitor &cpu, MemoryMonitor &memory, TelegramMonitor &telegram)
