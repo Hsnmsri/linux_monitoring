@@ -55,28 +55,66 @@ bool Settings::getSetting()
     botToken = settings["bot_token"];
     chatId = (int64_t)settings["chat_id"];
     app_version = settings["version"];
-    server_name = settings["server_name"];
+    node_name = settings["node_name"];
     cpuCheckDuration = (int)settings["cpu_check_duration"];
     memoryCheckDuration = (int)settings["memory_check_duration"];
     cpuLimit = (int)settings["cpu_limit"];
     memoryLimit = (int)settings["memory_limit"];
     defaultMonitoringStatus = (bool)settings["default_monitoring_status"];
 
+    // parse node_list
+    if (settings.contains("node_list") && !settings.is_array())
+    {
+        for (const auto &node_json : settings["node_list"])
+        {
+            NodeStructure node;
+            node.name = node_json["name"];
+            node.ip = node_json["ip"];
+            node.port = node_json["port"];
+            node.secret = node_json["secret"];
+            node_list.push_back(node);
+        }
+    }
+    else
+    {
+        Logger.logToConsole("Node list is not defined!");
+    }
+
     return true;
 }
 
+/**
+ * @brief Creates a settings file (settings.json) with application configuration settings provided by the user.
+ *
+ * This function collects configuration parameters from the user, including:
+ * - `bot_token`: Token for the bot integration (non-empty).
+ * - `chat_id`: The chat ID associated with the bot.
+ * - `node_name`: Identifier for the current node.
+ * - `cpu_check_duration`: Duration in milliseconds for CPU monitoring checks.
+ * - `memory_check_duration`: Duration in milliseconds for memory monitoring checks.
+ * - `cpu_limit`: CPU usage limit as a percentage for monitoring.
+ * - `memory_limit`: Memory usage limit as a percentage for monitoring.
+ * - `default_monitoring_status`: Boolean indicating whether monitoring is enabled by default.
+ *
+ * The collected settings are stored in a JSON object, and `node_list` is initialized as an empty array.
+ * The function then writes this JSON object to a file named "settings.json" in a human-readable format.
+ *
+ * @return bool - Returns true if the settings file is created successfully, otherwise returns false if an error occurs during file creation.
+ */
 bool Settings::createSettingsFile()
 {
     json settings;
 
     // Temporary variables to hold user input
-    std::string botToken, appVersion = "1.2.3", serverName;
+    std::string botToken, appVersion = "1.2.3", nodeName;
     int64_t chatId;
     int cpuCheckDuration, memoryCheckDuration, cpuLimit, memoryLimit;
     bool defaultMonitoringStatus;
 
     // Set the app version directly
-    settings["version"] = appVersion; // Use consistent key name here
+    // Use consistent key name here
+    settings["version"] = appVersion;
+    settings["node_list"] = nlohmann::json::array();
 
     // Bot token
     while (true)
@@ -111,14 +149,14 @@ bool Settings::createSettingsFile()
         }
     }
 
-    // Server name
+    // Node name
     while (true)
     {
-        std::cout << "Enter server name: ";
-        std::cin >> serverName;
-        if (!serverName.empty())
+        std::cout << "Enter current node name: ";
+        std::cin >> nodeName;
+        if (!nodeName.empty())
         {
-            settings["server_name"] = serverName;
+            settings["node_name"] = nodeName;
             break;
         }
         else
