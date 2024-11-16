@@ -6,6 +6,10 @@ int App::execute()
 {
     this->checkSetting();
 
+    // check nodes
+    nodes.setNodes(settings.getNodeList());
+    nodes.checkUniqueNodes();
+
     // set monitoring default status
     this->isMonitoringEnable = this->settings.getDefaultMonitoringStatus();
 

@@ -85,6 +85,24 @@ void TelegramMonitor::startTelegramNotificationWatchThread()
 }
 
 /**
+ * @brief Stops the Telegram notification watching thread.
+ *
+ * This function sets the `tgNotificationStatus` flag to `false`,
+ * indicating that the monitoring of Telegram notifications should
+ * cease. As a result, the associated thread responsible for
+ * observing notifications will be terminated, and the system will
+ * no longer process incoming Telegram messages for monitoring.
+ *
+ * It is important to call this method when notification monitoring
+ * is no longer needed to ensure proper resource management and
+ * graceful termination of the associated thread.
+ */
+void TelegramMonitor::stopTelegramNotificationWatchThread()
+{
+    this->tgNotificationStatus = false;
+}
+
+/**
  * @brief Handles the /start command to initiate monitoring.
  *
  * Checks if the user ID matches the allowed chat ID, logs the start command,
@@ -311,22 +329,4 @@ void TelegramMonitor::thread_telegramNotification()
 
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
-}
-
-/**
- * @brief Stops the Telegram notification watching thread.
- *
- * This function sets the `tgNotificationStatus` flag to `false`,
- * indicating that the monitoring of Telegram notifications should
- * cease. As a result, the associated thread responsible for
- * observing notifications will be terminated, and the system will
- * no longer process incoming Telegram messages for monitoring.
- *
- * It is important to call this method when notification monitoring
- * is no longer needed to ensure proper resource management and
- * graceful termination of the associated thread.
- */
-void TelegramMonitor::stopTelegramNotificationWatchThread()
-{
-    this->tgNotificationStatus = false;
 }

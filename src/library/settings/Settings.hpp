@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <fstream>
-#include <node/NodeStructure.cpp>
+#include <node/NodeStructure.hpp>
 #include <nlohmann/json.hpp> // Include the JSON library
 #include <log/Log.hpp>
 

@@ -5,6 +5,7 @@
 #include "cpu/CpuMonitor.hpp"
 #include "memory/MemoryMonitor.hpp"
 #include "telegram/TelegramMonitor.hpp"
+#include "node/Node.hpp"
 
 class App
 {
@@ -17,6 +18,7 @@ public:
 private:
     Log logger;
     Settings settings;
+    Node nodes;
     bool isMonitoringEnable;
 
     void hold(CpuMonitor &cpu, MemoryMonitor &memory, TelegramMonitor &telegram);

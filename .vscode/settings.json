@@ -79,6 +79,7 @@
         "ranges": "cpp",
         "valarray": "cpp",
         "bitset": "cpp",
-        "cfenv": "cpp"
+        "cfenv": "cpp",
+        "unordered_set": "cpp"
     }
 }
