@@ -8,7 +8,7 @@ int App::execute()
 
     // check nodes
     nodes.setNodes(settings.getNodeList());
-    nodes.checkUniqueNodes();
+    // nodes.checkUniqueNodes();
 
     // set monitoring default status
     this->isMonitoringEnable = this->settings.getDefaultMonitoringStatus();
@@ -25,6 +25,8 @@ int App::execute()
 
     // hold app
     this->hold(cpu, memory, telegram);
+
+    return 0;
 }
 
 bool App::checkSetting()
